@@ -38,6 +38,7 @@ class _DecoratedBoxTransitionExampleState
     extends State<DecoratedBoxTransitionExample>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _isSelected = false;
 
   final DecorationTween decorationTween = DecorationTween(
     end: BoxDecoration(
@@ -73,22 +74,33 @@ class _DecoratedBoxTransitionExampleState
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBoxTransition(
-      position: DecorationPosition.background,
-      decoration: decorationTween.animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
-      child: Container(
-        width: 200,
-        height: 200,
-        child: Center(
+    return GestureDetector(
+      onTap: _handleTap,
+      child: DecoratedBoxTransition(
+        position: DecorationPosition.background,
+        decoration: decorationTween.animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
+        child: Container(
+          width: 200,
+          height: 200,
+          child: Center(
             child: Text(
-          "Content",
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge!
-              .copyWith(color: kSelectedColor),
-        )),
+              "Content",
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge!
+                  .copyWith(color: kSelectedColor),
+            ),
+          ),
+        ),
       ),
     );
+  }
+
+  void _handleTap() {
+    _isSelected ? _controller.reverse() : _controller.forward();
+    setState(() {
+      _isSelected = !_isSelected;
+    });
   }
 }
