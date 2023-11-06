@@ -19,88 +19,96 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const Scaffold(
         body: Center(
-          child: DecoratedBoxTransitionExample(),
+          child: RootStatefulWidget(),
         ),
       ),
     );
   }
 }
 
-class DecoratedBoxTransitionExample extends StatefulWidget {
-  const DecoratedBoxTransitionExample({super.key});
+class RootStatefulWidget extends StatefulWidget {
+  const RootStatefulWidget({super.key});
 
   @override
-  State<DecoratedBoxTransitionExample> createState() =>
-      _DecoratedBoxTransitionExampleState();
+  State<RootStatefulWidget> createState() {
+    return _RootState();
+  }
 }
 
-class _DecoratedBoxTransitionExampleState
-    extends State<DecoratedBoxTransitionExample>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _RootState extends State<RootStatefulWidget> {
   bool _isSelected = false;
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBoxTransitionExample(
+      isSelected: _isSelected,
+      onSelectionChanged: () {
+        setState(() {
+          _isSelected = !_isSelected;
+        });
+      },
+    );
+  }
+}
 
-  final DecorationTween decorationTween = DecorationTween(
-    end: BoxDecoration(
-      color: kSelectedColor.withAlpha(32),
-      borderRadius: kSelectedBorderRadius,
-      boxShadow: <BoxShadow>[
-        BoxShadow(
-            color: kSelectedColor.withOpacity(0.2),
-            blurRadius: 8.0,
-            offset: kSelectedShadowOffset)
-      ],
-    ),
-    begin: BoxDecoration(
-      color: kUnselectedColor,
-      borderRadius: kSelectedBorderRadius,
-      // No shadow.
-    ),
-  );
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 2000));
-    _controller.forward();
+  Widget build(BuildContext context) {
+    return Container(
+      width: 200,
+      height: 200,
+      child: Center(
+        child: Text(
+          "Content",
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge!
+              .copyWith(color: kSelectedColor),
+        ),
+      ),
+    );
   }
+}
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+class DecoratedBoxTransitionExample extends StatelessWidget {
+  final bool isSelected;
+  final void Function() onSelectionChanged;
+
+  const DecoratedBoxTransitionExample(
+      {super.key, required this.isSelected, required this.onSelectionChanged});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _handleTap,
-      child: DecoratedBoxTransition(
-        position: DecorationPosition.background,
-        decoration: decorationTween.animate(
-            CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
-        child: Container(
-          width: 200,
-          height: 200,
-          child: Center(
-            child: Text(
-              "Content",
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge!
-                  .copyWith(color: kSelectedColor),
-            ),
+      onTap: onSelectionChanged,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        width: 200,
+        height: 200,
+        decoration: BoxDecoration(
+            color: isSelected ? kSelectedColor.withAlpha(32) : kUnselectedColor,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: isSelected
+                ? <BoxShadow>[
+                    BoxShadow(
+                        color: kSelectedColor.withOpacity(0.2),
+                        blurRadius: 8.0,
+                        offset: kSelectedShadowOffset)
+                  ]
+                : []),
+        // child: const MyWidget(),
+        child: Center(
+          child: Text(
+            "Content",
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge!
+                .copyWith(color: kSelectedColor),
           ),
         ),
       ),
     );
-  }
-
-  void _handleTap() {
-    _isSelected ? _controller.reverse() : _controller.forward();
-    setState(() {
-      _isSelected = !_isSelected;
-    });
   }
 }
